@@ -1,9 +1,9 @@
 /**
  * ------------------------------------------------------------------------
- * PROJECT NAME HERE
- * Level 2 programming project
+ * Rory Stock 300DTD Kotlin Coding Project
+ * Level 3 programming project
  *
- * by YOUR NAME HERE
+ * by Rory Stock
  *
  * BRIEF PROJECT DESCRIPTION HERE
  * BRIEF PROJECT DESCRIPTION HERE
