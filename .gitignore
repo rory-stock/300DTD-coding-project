@@ -11,6 +11,9 @@
 .DS_Store
 
 ### Kotlin template
+# Generated files
+out/
+
 # Compiled class file
 *.class
 
