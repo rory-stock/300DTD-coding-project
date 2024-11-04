@@ -285,5 +285,11 @@ class GUI : JFrame(), ActionListener {
 
         // Enable or disable the west button
         westButton.isEnabled = currentLocation.west != null
+
+        // Enable or disable the take item button
+        takeItemButton.isEnabled = currentLocation.hasItem()
+
+        // Enable or disable the use tool button
+        useToolButton.isEnabled = currentLocation.hasTool()
     }
 }
