@@ -184,14 +184,14 @@ class GUI : JFrame(), ActionListener {
         takeItemButton = JButton("Take Item")
         takeItemButton.bounds = Rectangle(67, 375, 78, 78)
         takeItemButton.font = baseFont
-        takeItemButton.addActionListener( this)
+        takeItemButton.addActionListener(this)
         add(takeItemButton)
 
         // Button to use tool
         useToolButton = JButton("Use Item")
         useToolButton.bounds = Rectangle(878, 375, 78, 78)
         useToolButton.font = baseFont
-        useToolButton.addActionListener( this)
+        useToolButton.addActionListener(this)
         add(useToolButton)
     }
 
