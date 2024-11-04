@@ -4,9 +4,10 @@
 
 The project involves the programming of a game.
 
-BRIEF DESCRIPTION OF GAME HERE
-BRIEF DESCRIPTION OF GAME HERE
-BRIEF DESCRIPTION OF GAME HERE
+This is a simple button-based game where the player can move around a grid of locations, pick up items and use them to
+discover other items.
+The player can move north, south, east or west, and once they have the correct tools they can unlock new areas and
+progress through the game.
 
 ### Game Features and Rules
 
