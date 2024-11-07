@@ -1,5 +1,6 @@
 /**
  * Location class
+ * Allows for the creation of a location object with properties to hold the location's neighbours, message, and item/s
  */
 class Location(val name: String) {
     // Properties to hold the location's neighbours

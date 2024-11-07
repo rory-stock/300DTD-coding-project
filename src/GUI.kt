@@ -4,6 +4,7 @@ import java.awt.Rectangle
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.*
+import kotlin.system.exitProcess
 
 /**
  * GUI class
@@ -55,31 +56,42 @@ class GUI : JFrame(), ActionListener {
 
     private fun setupLocations() {
 
-        // Create the locations
+        /**
+         * Create the locations
+         */
+        // First location tree
         val darkForest1 = Location("Dark Forest")
         val darkForest2 = Location("Dark Forest")
         val darkForest3 = Location("Dark Forest")
         val gloomyForest = Location("Gloomy Forest")
         val gloomyForest2 = Location("Gloomy Forest")
         val villageOutskirts = Location("Village Outskirts")
-        val easternOutskirtsPath = Location("Eastern Outskirts Path")
-        val westernOutskirtsPath = Location("Western Outskirts Path")
-        val villageCentre = Location("Village Centre")
-        val armoury = Location("Armoury")
-        val blacksmith = Location("Blacksmith")
 
-        // Create the items
+        // Second location tree
+        val easternOutskirtsPath = Location("Eastern Outskirts Path")
+        val easternGuardPost = Location("Eastern Guard Post")
+
+        // Third location tree
+        val westernOutskirtsPath = Location("Western Outskirts Path")
+        val westernGate = Location("Western Gate")
+
+        // Fourth location tree
+        val villageCentre = Location("Village Centre")
+        val apothecarysCottage = Location("Apothecary's Cottage")
+
+        /**
+         * Create the items
+         */
         val rustyShovel = Item("Rusty Shovel", "There is an old shovel leaning against a wall.")
         val key = Item("Key", "You see a patch of recently turned earth.")
-        val bow = Item("Bow", "There is a bow hanging on the wall. Unfortunately, there are no arrows.")
-        val arrow = Item("Arrow", "There is single arrow on the table.")
-
+        val strengthPotion = Item("Strength Potion", "A small vial of liquid sits on a shelf.")
+        val sword = Item("Sword", "Beside you is a gleaming silver sword. Unfortunately, it's seemingly fused into a rock.")
 
         /**
          * Configure the locations
          */
         darkForest1.addNorth(darkForest2)
-        darkForest1.message = "You are in a dark forest."
+        darkForest1.message = "You are in a dark forest. It's cold and damp, but at least your not locked in a cell anymore."
 
         darkForest2.addNorth(darkForest3)
         darkForest2.message = "You are in a dark forest."
@@ -96,29 +108,36 @@ class GUI : JFrame(), ActionListener {
         villageOutskirts.addNorth(villageCentre)
         villageOutskirts.addEast(easternOutskirtsPath)
         villageOutskirts.addWest(westernOutskirtsPath)
-        villageOutskirts.addDiscoverableItem(key)
-        villageOutskirts.addRequiredItem(rustyShovel)
-        villageOutskirts.message = "You are at the outskirts of a village. "
+        villageOutskirts.message = "You are at the outskirts of a village."
 
         easternOutskirtsPath.addWest(villageOutskirts)
+        easternOutskirtsPath.addEast(easternGuardPost)
+        easternOutskirtsPath.addDiscoverableItem(sword)
+        easternOutskirtsPath.addRequiredItem(strengthPotion)
         easternOutskirtsPath.message = "You see a group of armed guards ahead."
 
+        easternGuardPost.addWest(easternOutskirtsPath)
+        easternGuardPost.addRequiredItem(sword)
+        easternGuardPost.message = "You near the guard post. Five guards are standing watch. If you can get past them you'll finally be free."
+
         westernOutskirtsPath.addEast(villageOutskirts)
-        westernOutskirtsPath.addRequiredItem(key)
-        westernOutskirtsPath.message = "You see a locked gate ahead."
+        westernOutskirtsPath.addWest(westernGate)
+        westernOutskirtsPath.addDiscoverableItem(key)
+        westernOutskirtsPath.addRequiredItem(rustyShovel)
+        westernOutskirtsPath.message = "You see a large gate ahead."
 
-        villageCentre.addEast(armoury)
-        villageCentre.addWest(blacksmith)
+        westernGate.addEast(westernOutskirtsPath)
+        westernGate.addRequiredItem(key)
+        westernGate.message = "You are at the western gate. It is locked."
+
+        villageCentre.addWest(apothecarysCottage)
         villageCentre.addDiscoverableItem(rustyShovel)
-        villageCentre.message = "You are in the village centre. "
+        villageCentre.message = "You are in the village centre."
 
-        armoury.addWest(villageCentre)
-        armoury.addDiscoverableItem(bow)
-        armoury.message = "You are in the armoury. "
+        apothecarysCottage.addEast(villageCentre)
+        apothecarysCottage.addDiscoverableItem(strengthPotion)
+        apothecarysCottage.message = "You are in the apothecary's cottage."
 
-        blacksmith.addEast(villageCentre)
-        blacksmith.addDiscoverableItem(arrow)
-        blacksmith.message = "You are in the blacksmiths workshop. "
 
         // Add the locations to the list
         location.add(darkForest1)
@@ -136,7 +155,7 @@ class GUI : JFrame(), ActionListener {
      * Configure the main window
      */
     private fun setupWindow() {
-        title = "Kotlin GUI Example"
+        title = "A Dark Forest"
         contentPane.preferredSize = Dimension(1024, 768)
         defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
         isResizable = false
@@ -278,16 +297,24 @@ class GUI : JFrame(), ActionListener {
     private fun useItemAction() {
         // Use the item
         player.removeItem(currentLocation.requiredItem()?.name ?: "")
-        currentLocation.removeRequiredItem()
-        showInventory()
-        showLocation()
+        // Check for win condition. If the player just used the key or sword then they have won.
+        if (currentLocation.requiredItem()?.name == "Key" || currentLocation.requiredItem()?.name == "Sword") {
+            JOptionPane.showMessageDialog(this, "Finally, you have escaped the dark forest and are free!")
+            exitProcess(0)
+        } else {
+            currentLocation.removeRequiredItem()
+            showInventory()
+            showLocation()
+        }
     }
 
     private fun showInventory() {
+        // Display the player's inventory
         inventoryLabel.text = "<html>" + "Inventory: <br>" + inventoryList() + "</html>"
     }
 
     private fun inventoryList(): String {
+        // Return a list of items in the player's inventory
         return if (player.getInventory().isEmpty()) {
             "No items in inventory"
         } else {
@@ -295,12 +322,15 @@ class GUI : JFrame(), ActionListener {
         }
     }
 
+    /**
+     * Update the UI with the current location information
+     */
     private fun showLocation() {
         // Display the current location's name
         locationLabel.text = currentLocation.name
 
         // Display the current location's message
-        messageLabel.text = "<html>" + currentLocation.message + currentLocation.itemMessage + "</html>"
+        messageLabel.text = "<html>" + currentLocation.message + " " + currentLocation.itemMessage + "</html>"
 
         // Enable or disable the north button
         northButton.isEnabled = currentLocation.north != null
@@ -320,12 +350,12 @@ class GUI : JFrame(), ActionListener {
         } else {
             takeItemButton.isEnabled = currentLocation.hasItem() && !player.hasItem(currentLocation.getItem()?.name ?: "")
         }
-        // Change the text on the take item button
+        // Change the text on the take item button to show the item.
         takeItemButton.text = if (currentLocation.hasItem() && !currentLocation.hasRequiredItem()) "Take ${currentLocation.getItem()?.name}" else "Take Item"
 
         // Enable or disable the use item button
         useItemButton.isEnabled = player.hasItem(currentLocation.requiredItem()?.name ?: "")
-        // Change the text on the use item button
+        // Change the text on the use item button to show the required item.
         useItemButton.text = if (player.hasItem(currentLocation.requiredItem()?.name ?: "")) "Use ${currentLocation.requiredItem()?.name}" else "Use Item"
     }
 }
