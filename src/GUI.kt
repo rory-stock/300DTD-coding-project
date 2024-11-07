@@ -20,6 +20,7 @@ class GUI : JFrame(), ActionListener {
     // Setup labels to display the current location and location information
     private lateinit var locationLabel: JLabel
     private lateinit var messageLabel: JLabel
+    
     // Create JList to display inventory
     private lateinit var inventoryLabel: JLabel
 
