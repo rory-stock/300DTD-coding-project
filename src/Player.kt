@@ -8,12 +8,16 @@ class Player {
     /**
      * Functions to interact with the player's inventory
      */
-    fun addTool(tool: String) {
-        inventory.add(tool)
+    fun hasItem(item: String): Boolean {
+        return inventory.contains(item)
     }
 
-    fun hasTool(tool: String): Boolean {
-        return inventory.contains(tool)
+    fun addItem(item: String) {
+        inventory.add(item)
+    }
+
+    fun removeItem(item: String) {
+        inventory.remove(item)
     }
 
     fun getInventory(): String {

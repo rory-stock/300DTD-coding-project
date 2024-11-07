@@ -10,8 +10,9 @@ class Location(val name: String) {
 
     // Properties to hold the location's message and item
     var message: String = ""
-    private var usableTool = ""
-    private var discoverableItem = ""
+    var itemMessage: String = ""
+    private var requiredItem: Item? = null
+    private var discoverableItem: Item? = null
 
     /**
      * Functions to add neighbours and items
@@ -19,11 +20,6 @@ class Location(val name: String) {
     fun addNorth(location: Location) {
         north = location
         location.south = this
-    }
-
-    fun addSouth(location: Location) {
-        south = location
-        location.north = this
     }
 
     fun addEast(location: Location) {
@@ -36,39 +32,37 @@ class Location(val name: String) {
         location.east = this
     }
 
-    fun addTool(tool: String) {
-        this.usableTool = tool
+    fun addRequiredItem(item: Item) {
+        requiredItem = item
     }
 
-    fun removeTool() {
-        this.usableTool = ""
+    fun hasRequiredItem(): Boolean {
+        return requiredItem != null
     }
 
-    fun addDiscoverableItem(item: String) {
+    fun removeRequiredItem() {
+        requiredItem = null
+    }
+
+    fun addDiscoverableItem(item: Item) {
         discoverableItem = item
+        itemMessage = discoverableItem?.message ?: ""
     }
 
-    fun getDiscoverableItem(): String {
+    fun hasItem(): Boolean {
+        return discoverableItem != null
+    }
+
+    fun getItem(): Item? {
         return discoverableItem
     }
 
     fun removeDiscoverableItem() {
-        discoverableItem = ""
+        discoverableItem = null
+        itemMessage = ""
     }
 
-    fun getUsableTool(): String {
-        return usableTool
-    }
-
-    fun removeUsableTool() {
-        usableTool = ""
-    }
-
-    fun hasTool(): Boolean {
-        return usableTool.isNotEmpty()
-    }
-
-    fun hasItem(): Boolean {
-        return discoverableItem.isNotEmpty()
+    fun requiredItem(): Item? {
+        return requiredItem
     }
 }

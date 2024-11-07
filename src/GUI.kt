@@ -19,6 +19,7 @@ class GUI : JFrame(), ActionListener {
     // Setup labels to display the current location and location information
     private lateinit var locationLabel: JLabel
     private lateinit var messageLabel: JLabel
+    // Create JList to display inventory
     private lateinit var inventoryLabel: JLabel
 
     // Setup buttons to move between locations
@@ -29,7 +30,7 @@ class GUI : JFrame(), ActionListener {
 
     // Setup buttons to interact with the location
     private lateinit var takeItemButton: JButton
-    private lateinit var useToolButton: JButton
+    private lateinit var useItemButton: JButton
 
     /**
      * Create, build and run the UI
@@ -64,6 +65,15 @@ class GUI : JFrame(), ActionListener {
         val easternOutskirtsPath = Location("Eastern Outskirts Path")
         val westernOutskirtsPath = Location("Western Outskirts Path")
         val villageCentre = Location("Village Centre")
+        val armoury = Location("Armoury")
+        val blacksmith = Location("Blacksmith")
+
+        // Create the items
+        val rustyShovel = Item("Rusty Shovel", "There is an old shovel leaning against a wall.")
+        val key = Item("Key", "You see a patch of recently turned earth.")
+        val bow = Item("Bow", "There is a bow hanging on the wall. Unfortunately, there are no arrows.")
+        val arrow = Item("Arrow", "There is single arrow on the table.")
+
 
         /**
          * Configure the locations
@@ -86,16 +96,29 @@ class GUI : JFrame(), ActionListener {
         villageOutskirts.addNorth(villageCentre)
         villageOutskirts.addEast(easternOutskirtsPath)
         villageOutskirts.addWest(westernOutskirtsPath)
-        villageOutskirts.message = "You are at the outskirts of a village."
+        villageOutskirts.addDiscoverableItem(key)
+        villageOutskirts.addRequiredItem(rustyShovel)
+        villageOutskirts.message = "You are at the outskirts of a village. "
 
         easternOutskirtsPath.addWest(villageOutskirts)
         easternOutskirtsPath.message = "You see a group of armed guards ahead."
 
         westernOutskirtsPath.addEast(villageOutskirts)
+        westernOutskirtsPath.addRequiredItem(key)
         westernOutskirtsPath.message = "You see a locked gate ahead."
 
-        villageCentre.message = "You are in the village centre."
-        villageCentre.addTool("Rusty Shovel")
+        villageCentre.addEast(armoury)
+        villageCentre.addWest(blacksmith)
+        villageCentre.addDiscoverableItem(rustyShovel)
+        villageCentre.message = "You are in the village centre. "
+
+        armoury.addWest(villageCentre)
+        armoury.addDiscoverableItem(bow)
+        armoury.message = "You are in the armoury. "
+
+        blacksmith.addEast(villageCentre)
+        blacksmith.addDiscoverableItem(arrow)
+        blacksmith.message = "You are in the blacksmiths workshop. "
 
         // Add the locations to the list
         location.add(darkForest1)
@@ -180,19 +203,19 @@ class GUI : JFrame(), ActionListener {
         /**
          * Buttons to interact with the location
          */
-        // Button to take a hidden item
+        // Button to take an item
         takeItemButton = JButton("Take Item")
-        takeItemButton.bounds = Rectangle(67, 375, 78, 78)
+        takeItemButton.bounds = Rectangle(733, 343, 223, 50)
         takeItemButton.font = baseFont
         takeItemButton.addActionListener(this)
         add(takeItemButton)
 
-        // Button to use tool
-        useToolButton = JButton("Use Item")
-        useToolButton.bounds = Rectangle(878, 375, 78, 78)
-        useToolButton.font = baseFont
-        useToolButton.addActionListener(this)
-        add(useToolButton)
+        // Button to use an item
+        useItemButton = JButton("Use Item")
+        useItemButton.bounds = Rectangle(733, 400, 223, 50)
+        useItemButton.font = baseFont
+        useItemButton.addActionListener(this)
+        add(useItemButton)
     }
 
     /**
@@ -208,7 +231,7 @@ class GUI : JFrame(), ActionListener {
 
             // Action buttons
             takeItemButton -> takeItemAction()
-            useToolButton -> useToolAction()
+            useItemButton -> useItemAction()
         }
     }
 
@@ -245,26 +268,31 @@ class GUI : JFrame(), ActionListener {
     }
 
     private fun takeItemAction() {
-        // Add the item to the player's inventory
-        player.addTool(currentLocation.getDiscoverableItem())
-        currentLocation.removeTool()
+        // Take the item
+        player.addItem(currentLocation.getItem()?.name ?: "")
+        currentLocation.removeDiscoverableItem()
         showInventory()
+        showLocation()
     }
 
-    private fun useToolAction() {
-        // Use the tool to discover the item
-        if (currentLocation.hasTool() && currentLocation.hasItem() && player.hasTool(currentLocation.getUsableTool())) {
-            player.addTool(currentLocation.getDiscoverableItem())
-            currentLocation.removeTool()
-            currentLocation.removeDiscoverableItem()
-            showInventory()
-        } else {
-            messageLabel.text = "You need a tool to use here."
-        }
+    private fun useItemAction() {
+        // Use the item
+        player.removeItem(currentLocation.requiredItem()?.name ?: "")
+        currentLocation.removeRequiredItem()
+        showInventory()
+        showLocation()
     }
 
     private fun showInventory() {
-        inventoryLabel.text = "Inventory: " + player.getInventory()
+        inventoryLabel.text = "<html>" + "Inventory: <br>" + inventoryList() + "</html>"
+    }
+
+    private fun inventoryList(): String {
+        return if (player.getInventory().isEmpty()) {
+            "No items in inventory"
+        } else {
+            player.getInventory().split(", ").joinToString("<br>") { "- $it" }
+        }
     }
 
     private fun showLocation() {
@@ -272,7 +300,7 @@ class GUI : JFrame(), ActionListener {
         locationLabel.text = currentLocation.name
 
         // Display the current location's message
-        messageLabel.text = currentLocation.message
+        messageLabel.text = "<html>" + currentLocation.message + currentLocation.itemMessage + "</html>"
 
         // Enable or disable the north button
         northButton.isEnabled = currentLocation.north != null
@@ -287,9 +315,17 @@ class GUI : JFrame(), ActionListener {
         westButton.isEnabled = currentLocation.west != null
 
         // Enable or disable the take item button
-        takeItemButton.isEnabled = currentLocation.hasItem()
+        if (currentLocation.hasRequiredItem()) {
+            takeItemButton.isEnabled = false
+        } else {
+            takeItemButton.isEnabled = currentLocation.hasItem() && !player.hasItem(currentLocation.getItem()?.name ?: "")
+        }
+        // Change the text on the take item button
+        takeItemButton.text = if (currentLocation.hasItem() && !currentLocation.hasRequiredItem()) "Take ${currentLocation.getItem()?.name}" else "Take Item"
 
-        // Enable or disable the use tool button
-        useToolButton.isEnabled = currentLocation.hasTool()
+        // Enable or disable the use item button
+        useItemButton.isEnabled = player.hasItem(currentLocation.requiredItem()?.name ?: "")
+        // Change the text on the use item button
+        useItemButton.text = if (player.hasItem(currentLocation.requiredItem()?.name ?: "")) "Use ${currentLocation.requiredItem()?.name}" else "Use Item"
     }
 }
